@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button"
 import './App.css'
+import Chat from "./pages/Chat"
 
 function App() {
  
 
   return (
-    <Button>Click me</Button>
+    <Chat />
   )
 }
 
