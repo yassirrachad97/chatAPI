@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Bell, MoreVertical, Search, Send, Smile, Users } from "lucide-react";
 import { format } from "date-fns";
+import YourChats from "@/components/chat/YourChat/YourChats";
+import ListUserOnline from "@/components/chat/ListUserOnline/ListUserOnline";
+import { io } from "socket.io-client";
 
 // Types
 type Message = {
@@ -174,80 +177,52 @@ export default function Chat() {
     return groups;
   };
 
+
+  useEffect(() => {
+    // Connect to the Socket.IO server
+    const socket = io("http://localhost:3000"); // Update with your server URL
+
+    // Emit user connected event
+    socket.emit("connection", selectedUser.id);
+
+    // Log when the user connects
+    socket.on("connect", () => {
+      console.log(`Connected to the server with socket ID: ${socket.id}`);
+    });
+
+    // Listen for new messages
+    socket.on("new-message", (message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    // Listen for typing events
+    socket.on("user-typing", (userId) => {
+      if (selectedUser.id === userId) {
+        setSelectedUser((prev) => ({ ...prev, typing: true }));
+      }
+    });
+
+    socket.on("user-stopped-typing", (userId) => {
+      if (selectedUser.id === userId) {
+        setSelectedUser((prev) => ({ ...prev, typing: false }));
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [selectedUser.id]);
+
   return (
     <div className="flex h-[100vh] w-full max-w-[13 00px] mx-auto border rounded-lg overflow-hidden pt-[48px] bg-white dark:bg-black">
       {/* Left sidebar */}
-      <div className="w-80 border-r flex flex-col">
-        <div className="p-4 border-b">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search conversations..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        <ScrollArea className="flex-1">
-          {mockUsers.map((user) => (
-            <div
-              key={user.id}
-              className={`p-4 flex items-center gap-3 hover:bg-muted/50 cursor-pointer ${
-                selectedUser.id === user.id
-                  ? "bg-muted border-l-black border-l-2 dark:border-l-white "
-                  : ""
-              }`}
-              onClick={() => setSelectedUser(user)}
-            >
-              <div className="relative">
-                <Avatar>
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback>{user.name[0]}</AvatarFallback>
-                </Avatar>
-                {user.online && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">{user.name}</p>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(), "HH:mm")}
-                  </span>
-                </div>
-                {user.typing ? (
-                  <p className="text-sm text-green-600">
-                    {user.name} is typing...
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground truncate">
-                    Last message preview...
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                  2
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Delete chat</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-500">
-                      Block user
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          ))}
-        </ScrollArea>
-      </div>
+      <YourChats
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        mockUsers={mockUsers}
+        selectedUser={selectedUser}
+        setSelectedUser={setSelectedUser}
+      />
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col">
@@ -409,42 +384,7 @@ export default function Chat() {
       </div>
 
       {/* Right sidebar - Online Friends */}
-      <div className="w-80 border-l p-4">
-        <h3 className="font-semibold mb-4">Online Friends</h3>
-        <div className="space-y-4">
-          {mockUsers
-            .filter((user) => user.online)
-            .map((user) => (
-              <div key={user.id} className="flex items-center gap-3">
-                <div className="relative">
-                  <Avatar>
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
-                </div>
-                <span className="text-sm">{user.name}</span>
-              </div>
-            ))}
-        </div>
-        <Separator className="my-4" />
-        <h3 className="font-semibold mb-4">Offline</h3>
-        <div className="space-y-4">
-          {mockUsers
-            .filter((user) => !user.online)
-            .map((user) => (
-              <div key={user.id} className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback>{user.name[0]}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-muted-foreground">
-                  {user.name}
-                </span>
-              </div>
-            ))}
-        </div>
-      </div>
+      <ListUserOnline mockUsers={mockUsers} />
     </div>
   );
 }
