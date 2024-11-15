@@ -32,14 +32,15 @@ export class FriendsController{
 
 
 
+
  @Delete(':requesterId/:recipientId')
- async removeFriend(
+ async deleteFriend(
    @Param('requesterId') requesterId: string,
    @Param('recipientId') recipientId: string,
- ) {
-   return await this.friendService.removefriend(requesterId, recipientId);
+ ): Promise<string> {
+   const updateFriendStatusDto: UpdateFriendStatusDto = { requesterId, recipientId };
+   return this.friendService.removefriend(updateFriendStatusDto);
  }
-
 
  @Get(':userId')
  async getFriends(@Param('userId') userId: string) {
