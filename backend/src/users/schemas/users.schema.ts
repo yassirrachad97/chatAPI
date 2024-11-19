@@ -11,6 +11,8 @@ export const UsersSchema = new mongoose.Schema(
       default: 'offline',
     },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    isSuspended: { type: Boolean, default: false },
+    isBanned: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
