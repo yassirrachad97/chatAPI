@@ -1,6 +1,6 @@
 // users.service.ts
 import { Model } from 'mongoose';
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/CreateUserDto';
 import { User } from './interfaces/user.interface';
 
@@ -29,5 +29,53 @@ export class UsersService {
 
   async remove(id: string): Promise<User> {
     return this.usersModel.findByIdAndDelete(id).exec();
+  }
+
+  async suspendUser(id: string): Promise<User> {
+    const user = await this.usersModel.findByIdAndUpdate(
+      id,
+      { isSuspended: true },
+      { new: true },
+    ).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
+  }
+
+  async unsuspendUser(id: string): Promise<User> {
+    const user = await this.usersModel.findByIdAndUpdate(
+      id,
+      { isSuspended: false },
+      { new: true },
+    ).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
+  }
+
+  async banUser(id: string): Promise<User> {
+    const user = await this.usersModel.findByIdAndUpdate(
+      id,
+      { isBanned: true },
+      { new: true },
+    ).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
+  }
+
+  async unbanUser(id: string): Promise<User> {
+    const user = await this.usersModel.findByIdAndUpdate(
+      id,
+      { isBanned: false },
+      { new: true },
+    ).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 }
