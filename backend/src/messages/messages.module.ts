@@ -6,14 +6,18 @@ import { messagesProviders } from './providers/messages.providers';
 import { DatabaseModule } from 'src/database/database.module';
 import { MessageSchema } from './schemas/message.schemas';
 import { ChatGateway } from './chat/chat.gateway';
+import { UsersSchema } from '../users/schemas/users.schema';
+import { UsersModule } from 'src/users/users.module';
+import { UsersService } from 'src/users/users.service';
 
 @Module({
   imports: [
     DatabaseModule,
-    MongooseModule.forFeature([{ name: 'Message', schema: MessageSchema }])
+    MongooseModule.forFeature([{ name: 'Message', schema: MessageSchema }]),
+    UsersModule,
   ],
   controllers: [MessagesController],
   providers: [MessagesService, ChatGateway, ...messagesProviders],
-  exports: [...messagesProviders],  
+  exports: [...messagesProviders],
 })
 export class MessagesModule {}

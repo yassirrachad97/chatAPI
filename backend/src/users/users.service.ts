@@ -14,7 +14,10 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersModel.find().exec();
+    return this.usersModel
+      .find()
+      .populate('friends') // Populate the 'friends' field with actual user data
+      .exec();
   }
 
   async findOne(id: string): Promise<User> {
