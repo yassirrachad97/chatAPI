@@ -16,7 +16,7 @@ import { Bell, MoreVertical, Search, Send, Smile, Users } from "lucide-react";
 import { format } from "date-fns";
 import YourChats from "@/components/chat/YourChat/YourChats";
 import ListUserOnline from "@/components/chat/ListUserOnline/ListUserOnline";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 // Types
 type Message = {
@@ -33,6 +33,26 @@ type User = {
   avatar: string;
   online: boolean;
   typing?: boolean;
+};
+
+interface JoinRoomData {
+  roomName: string;
+}
+
+type Messages = {
+  createdAt: string;
+  message: string;
+  receiver: {
+    _id: string;
+    username: string;
+    image: string;
+  };
+  roomName: string;
+  sender: {
+    _id: string;
+    username: string;
+    image: string;
+  };
 };
 
 // Mock data
@@ -57,40 +77,32 @@ const mockUsers: User[] = [
   },
 ];
 
-const mockMessages: Message[] = [
+const mockMessages = [
   {
-    id: "1",
-    content: "Hi Admin, I wanted to ask about my salary this month 💰",
-    sender: mockUsers[0],
+    _id: "67346d797577d404e390a2e6",
+    message: "hi",
+    sender: { id: "1", name: "Jimmy", avatar: "avatar1.jpg" },
+    receiver: { id: "2", name: "Admin", avatar: "avatar2.jpg" },
+    roomName: "room1",
     timestamp: new Date("2024-01-10T10:10:00"),
     read: true,
   },
   {
-    id: "2",
-    content: "Hello Jimmy! I'll check that for you right away 👍",
-    sender: mockUsers[1],
+    _id: "67346d827577d404e390a2eb",
+    message: "hello",
+    sender: { id: "2", name: "Admin", avatar: "avatar2.jpg" },
+    receiver: { id: "1", name: "Jimmy", avatar: "avatar1.jpg" },
+    roomName: "room1",
     timestamp: new Date("2024-01-10T10:12:00"),
     read: true,
   },
   {
-    id: "3",
-    content: "There was actually a bonus added this month! 🎉",
-    sender: mockUsers[1],
+    _id: "6734be05ea40fae2e2b6a674",
+    message: "sss",
+    sender: { id: "1", name: "Jimmy", avatar: "avatar1.jpg" },
+    receiver: { id: "2", name: "Admin", avatar: "avatar2.jpg" },
+    roomName: "room1",
     timestamp: new Date("2024-01-10T10:13:00"),
-    read: true,
-  },
-  {
-    id: "4",
-    content: "Oh wow, that's great news! Thank you 😊",
-    sender: mockUsers[0],
-    timestamp: new Date("2024-01-10T10:15:00"),
-    read: true,
-  },
-  {
-    id: "5",
-    content: "You deserve it! Keep up the great work 🌟",
-    sender: mockUsers[1],
-    timestamp: new Date("2024-01-10T10:16:00"),
     read: true,
   },
 ];
@@ -119,12 +131,24 @@ const emojiCategories = {
   },
 };
 
+const socket: Socket = io("http://localhost:3000");
 export default function Chat() {
+  const [co, setco] = useState<number>(0);
+  const [message, setMessage] = useState<string>("");
+  const [roomName, setRoomName] = useState<string>("");
+  const [typing, settyping] = useState<boolean>(false);
+  const currentUserId = localStorage.getItem("sender");
+  const receiver = localStorage.getItem("receiver");
   const [selectedUser, setSelectedUser] = useState<User>(mockUsers[0]);
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>();
+  const [contacts, setContacts] = useState([]);
+  const [messagess, setMessagess] = useState<any>();
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [receive, setReceive] = useState<any>();
+  const [socketid, setSocketid] = useState<any>(socket.id);
+  const [socketidback, setSocketidback] = useState<any>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -133,33 +157,49 @@ export default function Chat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [co]);
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+  const handleSendMessage = async () => {
+    if (newMessage.trim()) {
+      await socket.emit("message", {
+        sender: currentUserId,
+        receiver: receiver,
+        message: newMessage,
+      });
 
-    const message: Message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      sender: mockUsers[0],
-      timestamp: new Date(),
-      read: false,
+      // console.log(receive.id);
+
+      setNewMessage("");
+      await setco((pre) => pre + 1);
+
+      console.log(co);
+
+      scrollToBottom();
+    }
+
+    console.log(newMessage);
+
+    console.log("yeeeeessssssssssssssssssssssssssss");
+  };
+
+  const handleTypingStart = () => {
+    console.log(roomName);
+
+    const data = {
+      id: socket.id,
+      roomName: roomName,
     };
+    console.log(data);
 
-    setMessages([...messages, message]);
-    setNewMessage("");
+    socket.emit("start-typing", { data });
+  };
 
-    // Simulate reply after 2 seconds
-    setTimeout(() => {
-      const replyMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "Thanks for your message! 👋",
-        sender: mockUsers[1],
-        timestamp: new Date(),
-        read: false,
-      };
-      setMessages((prev) => [...prev, replyMessage]);
-    }, 2000);
+  const handleTypingStop = () => {
+    const data = {
+      id: socket.id,
+      roomName: roomName,
+    };
+    socket.emit("stop-typing", { data });
   };
 
   const handleEmojiClick = (emoji: string) => {
@@ -167,20 +207,68 @@ export default function Chat() {
     setShowEmojiPicker(false);
   };
 
-  const getMessageGroups = () => {
-    const groups: { [key: string]: Message[] } = {};
-    messages.forEach((message) => {
-      const date = format(message.timestamp, "yyyy-MM-dd");
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(message);
-    });
-    return groups;
-  };
-
+  // const getMessageGroups = () => {
+  //   const groups: { [key: string]: Message[] } = {};
+  //   messages.forEach((message) => {
+  //     const date = format(message.timestamp, "yyyy-MM-dd");
+  //     if (!groups[date]) groups[date] = [];
+  //     groups[date].push(message);
+  //   });
+  //   return groups;
+  // };
 
   useEffect(() => {
-    // Connect to the Socket.IO server
-    const socket = io("http://localhost:3000"); // Update with your server URL
+    const socket = io("http://localhost:3000");
+
+    if (currentUserId) {
+      const currentUserId = localStorage.getItem("sender");
+      socket.emit("userConnected", { currentUserId });
+    }
+
+    // Join room event
+    socket.emit("joinRoom", { roomName } as JoinRoomData);
+
+    socket.emit("getContacts", { roomName: currentUserId });
+
+    // Listen for new messages in the room
+    socket.on("roomMessage", (data: { message: Message }) => {
+      setMessagess((prevMessages: any) => [...prevMessages, data.message]);
+
+      setco((pre) => pre + 1);
+    });
+
+    socket.on("getTyping", (data) => {
+      console.log("yes typing  backend ");
+      console.log("front ", socket.id);
+
+      console.log("data");
+
+      console.log(data);
+
+      console.log("data");
+      setSocketidback(data.id);
+      console.log("yes typing");
+
+      settyping(data.typing);
+    });
+
+    socket.on("contacts", (data) => {
+      setContacts(data);
+    });
+
+    socket.on("getConvirsation", (data) => {
+      console.log("getConvirsation====================================");
+      console.log(data);
+
+      console.log("getConvirsation====================================");
+
+      setco((pre) => (pre += 1));
+    });
+
+    // Load initial messages for the room
+    socket.on("roomMessages", (msgs: Message[]) => {
+      setMessagess(msgs);
+    });
 
     // Emit user connected event
     socket.emit("connection", selectedUser.id);
@@ -190,28 +278,11 @@ export default function Chat() {
       console.log(`Connected to the server with socket ID: ${socket.id}`);
     });
 
-    // Listen for new messages
-    socket.on("new-message", (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-    });
-
-    // Listen for typing events
-    socket.on("user-typing", (userId) => {
-      if (selectedUser.id === userId) {
-        setSelectedUser((prev) => ({ ...prev, typing: true }));
-      }
-    });
-
-    socket.on("user-stopped-typing", (userId) => {
-      if (selectedUser.id === userId) {
-        setSelectedUser((prev) => ({ ...prev, typing: false }));
-      }
-    });
-
     return () => {
+      socket.off("getTyping");
       socket.disconnect();
     };
-  }, [selectedUser.id]);
+  }, [roomName, co]);
 
   return (
     <div className="flex h-[100vh] w-full max-w-[13 00px] mx-auto border rounded-lg overflow-hidden pt-[48px] bg-white dark:bg-black">
@@ -219,29 +290,32 @@ export default function Chat() {
       <YourChats
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        mockUsers={mockUsers}
-        selectedUser={selectedUser}
-        setSelectedUser={setSelectedUser}
+        mockUsers={contacts}
+        setRoomName={setRoomName}
+        setReceive={setReceive}
       />
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col">
         <div className="p-4 border-b flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarImage src={selectedUser.avatar} alt={selectedUser.name} />
-              <AvatarFallback>{selectedUser.name[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <h2 className="font-semibold">{selectedUser.name}</h2>
-              {selectedUser.online && (
-                <p className="text-sm text-green-600">Online</p>
-              )}
-              {!selectedUser.typing && (
-                <p className="text-sm text-green-600">Typing...</p>
-              )}
+          {receive ? (
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarImage src={receive.username} alt={receive.username} />
+                <AvatarFallback>{receive.username[0]}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h2 className="font-semibold">{receive.username}</h2>
+                {/* {selectedUser.online && (
+                  <p className="text-sm text-green-600">Online</p>
+                )} */}
+
+                {socketidback !== socket.id && typing && (
+                  <p className="text-sm text-green-600">typing...</p>
+                )}
+              </div>
             </div>
-          </div>
+          ) : null}
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon">
               <Bell className="h-4 w-4" />
@@ -266,54 +340,45 @@ export default function Chat() {
         </div>
 
         <ScrollArea className="flex-1 p-4">
-          {Object.entries(getMessageGroups()).map(([date, groupMessages]) => (
-            <div key={date}>
-              <div className="flex items-center gap-2 my-4">
-                <Separator className="flex-1" />
-                <span className="text-xs text-muted-foreground px-2">
-                  {format(new Date(date), "MMMM d, yyyy")}
-                </span>
-                <Separator className="flex-1" />
-              </div>
-              {groupMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex items-start gap-3 mb-4 ${
-                    message.sender.id === "1" ? "flex-row-reverse" : ""
+          {messagess?.map((message: any) => (
+            <div
+              key={message._id}
+              className={`flex items-start gap-3 mb-4 ${
+                message?.sender?._id === currentUserId ? "flex-row-reverse" : ""
+              }`}
+            >
+              <Avatar>
+                <AvatarImage
+                  src={message?.sender?.image}
+                  alt={message?.sender?.username}
+                />
+                <AvatarFallback>{message?.sender?.username[0]}</AvatarFallback>
+              </Avatar>
+              <div
+                className={`flex flex-col ${
+                  message?.sender?._id === currentUserId
+                    ? "items-end"
+                    : "items-start"
+                }`}
+              >
+                <Card
+                  className={`p-3 max-w-md ${
+                    message?.sender?._id === currentUserId
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-gray-200"
                   }`}
                 >
-                  <Avatar>
-                    <AvatarImage
-                      src={message.sender.avatar}
-                      alt={message.sender.name}
-                    />
-                    <AvatarFallback>{message.sender.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div
-                    className={`flex flex-col ${
-                      message.sender.id === "1" ? "items-end" : "items-start"
-                    }`}
-                  >
-                    <Card
-                      className={`p-3 max-w-md ${
-                        message.sender.id === "1"
-                          ? "bg-primary text-primary-foreground"
-                          : ""
-                      }`}
-                    >
-                      {message.content}
-                    </Card>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-muted-foreground">
-                        {format(message.timestamp, "HH:mm")}
-                      </span>
-                      {message.read && (
-                        <span className="text-xs text-blue-500">✓✓</span>
-                      )}
-                    </div>
-                  </div>
+                  {message.message}
+                </Card>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(message.createdAt), "HH:mm")}
+                  </span>
+                  {/* {message.read && (
+                    <span className="text-xs text-blue-500">✓✓</span>
+                  )} */}
                 </div>
-              ))}
+              </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
@@ -361,10 +426,14 @@ export default function Chat() {
               <textarea
                 className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 placeholder="Type a message..."
+                // onChange={(e) => handlTiyping(e)}
                 rows={1}
                 value={newMessage}
+                onFocus={handleTypingStart}
+                onBlur={handleTypingStop}
                 onChange={(e) => {
                   setNewMessage(e.target.value);
+
                   e.target.style.height = "auto";
                   e.target.style.height = `${e.target.scrollHeight}px`;
                 }}
