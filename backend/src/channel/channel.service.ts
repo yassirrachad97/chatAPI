@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Channel } from './interfaces/channel.interface';
@@ -22,10 +22,18 @@ export class ChannelService {
     return `This action returns a #${id} channel`;
   }
 
-  update(id: number, updateChannelDto: UpdateChannelDto) {
-    return `This action updates a #${id} channel`;
-  }
 
+  async update(id: string, updateChannelDto: UpdateChannelDto): Promise<Channel> {
+    const updatedChannel = await this.channelModel
+      .findByIdAndUpdate(id, updateChannelDto, { new: true }) 
+      .exec();
+
+    if (!updatedChannel) {
+      throw new NotFoundException(`Channel with ID "${id}" not found`);
+    }
+
+    return updatedChannel;
+  }
   remove(id: number) {
     return `This action removes a #${id} channel`;
   }
