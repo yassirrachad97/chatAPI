@@ -32,4 +32,13 @@ export class ChannelController {
     await this.channelService.remove(id);
     return { message: `Channel with ID "${id}" has been removed` };
   }
+
+  @Post(':channelId/member/:userId')
+  async addMember(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+  ) {
+    const updatedChannel = await this.channelService.addMember(channelId, userId);
+    return updatedChannel;
+  }
 }

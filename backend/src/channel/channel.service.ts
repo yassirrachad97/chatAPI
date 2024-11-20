@@ -41,4 +41,26 @@ export class ChannelService {
       throw new NotFoundException(`Channel with ID "${id}" not found`);
     }
   }
+
+    // Ajouter un membre au canal privé
+    async addMember(channelId: string, userId: string): Promise<Channel> {
+      const channel = await this.channelModel.findById(channelId);
+  
+      if (!channel) {
+        throw new NotFoundException(`Channel with ID "${channelId}" not found`);
+      }
+  
+      if (channel.type !== 'private') {
+        throw new Error('Only private channels can have members');
+      }
+  
+      // Vérifie si l'utilisateur est déjà membre
+      if (channel.members.includes(userId)) {
+        throw new Error('User is already a member of this channel');
+      }
+  
+      channel.members.push(userId);
+      await channel.save();
+      return channel;
+    }
 }
