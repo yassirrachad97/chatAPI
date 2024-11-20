@@ -34,7 +34,11 @@ export class ChannelService {
 
     return updatedChannel;
   }
-  remove(id: number) {
-    return `This action removes a #${id} channel`;
+  async remove(id: string): Promise<void> {
+    const deletedChannel = await this.channelModel.findByIdAndDelete(id).exec();
+
+    if (!deletedChannel) {
+      throw new NotFoundException(`Channel with ID "${id}" not found`);
+    }
   }
 }

@@ -28,7 +28,8 @@ export class ChannelController {
   }
   
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.channelService.remove(+id);
+  async remove(@Param('id') id: string) {
+    await this.channelService.remove(id);
+    return { message: `Channel with ID "${id}" has been removed` };
   }
 }
