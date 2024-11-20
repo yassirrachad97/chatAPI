@@ -163,7 +163,7 @@ export default function Chat() {
     if (newMessage.trim()) {
       await socket.emit("message", {
         sender: currentUserId,
-        receiver: receiver,
+        receiver: receive && receive.id,
         message: newMessage,
       });
 
@@ -283,6 +283,8 @@ export default function Chat() {
       socket.disconnect();
     };
   }, [roomName, co]);
+
+  console.log(receive);
 
   return (
     <div className="flex h-[100vh] w-full max-w-[13 00px] mx-auto border rounded-lg overflow-hidden pt-[48px] bg-white dark:bg-black">
@@ -453,7 +455,7 @@ export default function Chat() {
       </div>
 
       {/* Right sidebar - Online Friends */}
-      <ListUserOnline  />
+      <ListUserOnline setReceive={setReceive} />
     </div>
   );
 }
