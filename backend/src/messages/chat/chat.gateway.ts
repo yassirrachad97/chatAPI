@@ -33,6 +33,15 @@ export class ChatGateway implements OnModuleInit {
     this.server.on('connection', (socket: Socket) => {
       this.socket = socket;
 
+      socket.on('createRoom', (name: string) => {
+        socket.join('roomName');
+        this.server.to('roomName').emit('join', `Ajoute users ${name}`);
+      });
+
+      socket.on('handelMessage', (data: { message: string }) => {
+        this.server.to('roomName').emit('getts', data.message);
+      });
+
       socket.on('joinRoom', async ({ roomName }) => {
         if (roomName) {
           socket.join(roomName);
