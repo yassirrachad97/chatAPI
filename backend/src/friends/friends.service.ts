@@ -15,6 +15,41 @@ export class FriendsService {
     //     return new Types.ObjectId(id);
     // }
 
+    async getUser(id: string) {
+      console.log(`Fetching user with ID: ${id}`);
+      
+      
+      const user = await this.userModel.findById(id);
+      
+      if (!user) {
+        throw new Error(`User with ID ${id} not found`);
+      }
+    
+     
+      user.status = "online";
+      await user.save();
+    
+      return user;
+    }
+
+    async getOfline(id: string) {
+      console.log(`Fetching user with ID: ${id}`);
+      
+      
+      const user = await this.userModel.findById(id);
+      
+      if (!user) {
+        throw new Error(`User with ID ${id} not found`);
+      }
+    
+   
+      user.status = "offline";
+      await user.save();
+    
+      return user;
+    }
+    
+
     async checkExistingFriendRequest(createFriendDto: CreateFriendDto): Promise<boolean> {
       const { requesterId, recipientId } = createFriendDto;
       const requester = await this.userModel.findById(requesterId);
@@ -129,14 +164,23 @@ async removefriend(updateFriendStatusDto: UpdateFriendStatusDto): Promise<string
   
     return 'Friend removed successfully';
   }
-   async getFriends(userId: string): Promise<UserFriend[]> {
-    const user = await this.userModel.findById(userId).populate('friends.friendId' , 'username');
+  async getFriends(userId: string): Promise<UserFriend[]> {
+    const user = await this.userModel
+        .findById(userId)
+        .populate('friends.friendId', 'username status');
+
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+
+    console.log(user);
     
-    return user.friends.filter(friend => friend.status === 'accepted');
+
+    return user.friends; 
 }
+
+
+  
 
 async updateStatus(userId: string, status: 'online' | 'offline'): Promise<void> {
   await this.userModel.findByIdAndUpdate(userId, { status });

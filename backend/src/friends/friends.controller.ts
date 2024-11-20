@@ -46,5 +46,4 @@ export class FriendsController{
  async getFriends(@Param('userId') userId: string) {
    return await this.friendService.getFriends(userId);
  }
-
 }
