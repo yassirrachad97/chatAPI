@@ -12,6 +12,10 @@ import { FriendsModule } from './friends/friends.module';
     DatabaseModule,
     UsersModule,
     MessagesModule,
+<<<<<<< HEAD
+=======
+    FriendsModule,
+>>>>>>> 43cd0d77f9d5af5c9a9296d433ce6cd9d4535294
   ],
   controllers: [],
   providers: [],

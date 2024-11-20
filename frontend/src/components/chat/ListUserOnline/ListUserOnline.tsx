@@ -4,9 +4,10 @@ import { Separator } from "@radix-ui/react-separator";
 import io from "socket.io-client";
 
 
-const ListUserOnline = ({ setReceive }) => {
+const ListUserOnline = ({ setReceive, handlRoom }) => {
   const [friends, setFriends] = useState<any>([]);
   const [loading, setLoading] = useState(true);
+  const currentUserId = localStorage.getItem("sender");
   const [error, setError] = useState(null);
   const socket = React.useRef(null);
   const userId = localStorage.getItem("sender");
@@ -62,8 +63,6 @@ const ListUserOnline = ({ setReceive }) => {
     return <div>Error: {error}</div>;
   }
 
-
-
   return (
     <div className="w-80 border-l p-4">
       <h3 className="font-semibold mb-4">Online Friends</h3>
@@ -82,12 +81,13 @@ const ListUserOnline = ({ setReceive }) => {
               </div>
               <span
                 className="text-sm cursor-pointer"
-                onClick={() =>
+                onClick={() => (
+                  handlRoom(user.friendId._id),
                   setReceive({
                     username: user.friendId.username,
                     id: user.friendId._id,
                   })
-                }
+                )}
               >
                 {user.friendId.username}
               </span>
@@ -105,13 +105,16 @@ const ListUserOnline = ({ setReceive }) => {
                 <AvatarImage src={user.friendId.image} alt={user.username} />
                 <AvatarFallback>{user.friendId.username[0]}</AvatarFallback>
               </Avatar>
-              <span className="text-sm text-muted-foreground cursor-pointer"
-               onClick={() =>
-                setReceive({
-                  username: user.friendId.username,
-                  id: user.friendId._id,
-                })
-              }>
+              <span
+                onClick={() => (
+                  handlRoom(user.friendId._id),
+                  setReceive({
+                    username: user.friendId.username,
+                    id: user.friendId._id,
+                  })
+                )}
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
                 {user.friendId.username}
               </span>
             </div>
