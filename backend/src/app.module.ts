@@ -11,11 +11,10 @@ import { MongooseModule } from '@nestjs/mongoose';
   imports: [
     MongooseModule.forRoot('mongodb://localhost:27017/chat-v-youcode'),
     DatabaseModule,
-    UsersModule,  
-    MessagesModule,  
+    UsersModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
-
