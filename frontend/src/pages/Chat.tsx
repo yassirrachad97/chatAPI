@@ -148,6 +148,7 @@ export default function Chat() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [receive, setReceive] = useState<any>();
   const [socketid, setSocketid] = useState<any>(socket.id);
+  const [idreciver, setIdreciver] = useState();
   const [socketidback, setSocketidback] = useState<any>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -217,6 +218,14 @@ export default function Chat() {
   //   return groups;
   // };
 
+  const handlRoom = (idReciver: string) => {
+    console.log(idReciver);
+    const participants = [currentUserId, idReciver].sort();
+    const roomNam = `${participants[0]}-${participants[1]}`;
+
+    setRoomName(roomNam);
+  };
+
   useEffect(() => {
     const socket = io("http://localhost:3000");
 
@@ -267,6 +276,13 @@ export default function Chat() {
 
     // Load initial messages for the room
     socket.on("roomMessages", (msgs: Message[]) => {
+      console.log("hhhh");
+
+      console.log(roomName);
+      console.log("hhhh");
+
+      console.log(msgs);
+
       setMessagess(msgs);
     });
 
@@ -283,8 +299,6 @@ export default function Chat() {
       socket.disconnect();
     };
   }, [roomName, co]);
-
-  console.log(receive);
 
   return (
     <div className="flex h-[100vh] w-full max-w-[13 00px] mx-auto border rounded-lg overflow-hidden pt-[48px] bg-white dark:bg-black">
@@ -455,7 +469,10 @@ export default function Chat() {
       </div>
 
       {/* Right sidebar - Online Friends */}
-      <ListUserOnline setReceive={setReceive} />
+      <ListUserOnline
+        setReceive={setReceive}
+        handlRoom={handlRoom}
+      />
     </div>
   );
 }
