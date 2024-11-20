@@ -79,7 +79,8 @@ const ListUserOnline = () => {
           .map((user) => (
             <div key={user._id} className="flex items-center gap-3">
               <div className="relative">
-                <Avatar>
+                
+                <Avatar >
                   <AvatarImage src={user.friendId.image} alt={user.username} />
                   <AvatarFallback>{user.friendId.username[0]}</AvatarFallback>
                 </Avatar>

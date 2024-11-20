@@ -453,7 +453,7 @@ export default function Chat() {
       </div>
 
       {/* Right sidebar - Online Friends */}
-      <ListUserOnline mockUsers={mockUsers} />
+      <ListUserOnline  />
     </div>
   );
 }
