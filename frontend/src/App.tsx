@@ -1,15 +1,21 @@
-import { Button } from "@/components/ui/button"
-import './App.css'
-import Chat from "./pages/Chat"
-import Chatss from "./pages/Chatss"
+// src/App.js
+import './App.css';
+import Chat from "./pages/Chat";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import FriendsList from "./pages/FriendsList";
 
 function App() {
- 
-
   return (
-    <Chat />
-    // <Chatss/>
-  )
+    <Router>
+      <div className="App">
+        <Routes>
+          {/* <Route path="/chat" element={<Chat />} /> */}
+          <Route path="/friends" element={<FriendsList />} />
+          <Route path="/" element={<Chat />} /> 
+        </Routes>
+      </div>
+    </Router>
+  );
 }
 
-export default App
+export default App;
