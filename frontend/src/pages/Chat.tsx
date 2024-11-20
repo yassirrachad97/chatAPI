@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
-import { Bell, MoreVertical, Search, Send, Smile, Users } from "lucide-react";
+import { Bell, MoreVertical, Send, Smile, Users } from "lucide-react";
 import { format } from "date-fns";
 import YourChats from "@/components/chat/YourChat/YourChats";
 import ListUserOnline from "@/components/chat/ListUserOnline/ListUserOnline";
