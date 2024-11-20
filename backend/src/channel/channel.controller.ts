@@ -41,4 +41,13 @@ export class ChannelController {
     const updatedChannel = await this.channelService.addMember(channelId, userId);
     return updatedChannel;
   }
+
+  @Delete(':channelId/member/:userId')
+  async removeMember(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+  ) {
+    const updatedChannel = await this.channelService.removeMember(channelId, userId);
+    return updatedChannel;
+  }
 }

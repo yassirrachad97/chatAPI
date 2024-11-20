@@ -63,4 +63,28 @@ export class ChannelService {
       await channel.save();
       return channel;
     }
+
+
+      // Retirer un membre du canal privé
+  async removeMember(channelId: string, userId: string): Promise<Channel> {
+    const channel = await this.channelModel.findById(channelId);
+
+    if (!channel) {
+      throw new NotFoundException(`Channel with ID "${channelId}" not found`);
+    }
+
+    if (channel.type !== 'private') {
+      throw new Error('Only private channels can have members');
+    }
+
+    const memberIndex = channel.members.indexOf(userId);
+
+    if (memberIndex === -1) {
+      throw new Error('User is not a member of this channel');
+    }
+
+    channel.members.splice(memberIndex, 1);
+    await channel.save();
+    return channel;
+  }
 }
