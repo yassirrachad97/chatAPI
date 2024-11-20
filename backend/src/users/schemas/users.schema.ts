@@ -10,16 +10,9 @@ export const UsersSchema = new mongoose.Schema(
       enum: ['online', 'offline'],
       default: 'offline',
     },
-    friends: [
-      {
-        friendId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        status: {
-          type: String,
-          enum: ['pending', 'accepted', 'rejected'],
-          default: 'pending',
-        },
-      },
-    ],
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    isSuspended: { type: Boolean, default: false },
+    isBanned: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

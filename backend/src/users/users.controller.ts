@@ -1,5 +1,5 @@
 // users.controller.ts
-import { Controller, Post, Get, Param, Body, Put, Delete } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Put, Delete, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/CreateUserDto';  
 import { User } from './interfaces/user.interface'; 
@@ -34,5 +34,25 @@ export class UsersController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<User> {
     return this.usersService.remove(id);  
+  }
+
+  @Patch(':id/suspend')
+  async suspendUser(@Param('id') id: string): Promise<User> {
+    return this.usersService.suspendUser(id);  
+  }
+
+  @Patch(':id/unsuspend')
+  async unsuspendUser(@Param('id') id: string): Promise<User> {
+    return this.usersService.unsuspendUser(id);  
+  }
+
+  @Patch(':id/ban')
+  async banUser(@Param('id') id: string): Promise<User> {
+    return this.usersService.banUser(id);  
+  }
+
+  @Patch(':id/unban')
+  async unbanUser(@Param('id') id: string): Promise<User> {
+    return this.usersService.unbanUser(id);  
   }
 }
