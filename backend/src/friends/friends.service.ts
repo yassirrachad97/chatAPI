@@ -167,7 +167,7 @@ async removefriend(updateFriendStatusDto: UpdateFriendStatusDto): Promise<string
   async getFriends(userId: string): Promise<UserFriend[]> {
     const user = await this.userModel
         .findById(userId)
-        .populate('friends.friendId', 'username status');
+        .populate('friends.friendId', 'username status image');
 
     if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
