@@ -50,4 +50,12 @@ export class ChannelController {
     const updatedChannel = await this.channelService.removeMember(channelId, userId);
     return updatedChannel;
   }
+
+  @Post(':channelId/leave/:userId')
+  async leaveChannel(
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.channelService.leaveChannel(channelId, userId);
+  }
 }

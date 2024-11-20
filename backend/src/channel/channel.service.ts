@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Channel } from './interfaces/channel.interface';
@@ -85,6 +85,26 @@ export class ChannelService {
 
     channel.members.splice(memberIndex, 1);
     await channel.save();
+    return channel;
+  }
+
+  async leaveChannel(channelId: string, userId: string): Promise<Channel> {
+    // Vérifier si le canal existe
+    const channel = await this.channelModel.findById(channelId).exec();
+    if (!channel) {
+      throw new NotFoundException(`Channel with ID "${channelId}" not found`);
+    }
+
+    // Vérifier si l'utilisateur est membre du canal
+    const isMember = channel.members.includes(userId);
+    if (!isMember) {
+      throw new BadRequestException(`User "${userId}" is not a member of this channel`);
+    }
+
+    // Supprimer l'utilisateur de la liste des membres
+    channel.members = channel.members.filter((member) => member !== userId);
+    await channel.save();
+
     return channel;
   }
 }
