@@ -11,12 +11,17 @@ import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { MoreVertical, Search } from "lucide-react";
 import { format } from "date-fns";
 
+// const handleRoomAndReceive = (room, username) => {
+//   console.log(username);
+//   setReceive(username);
+//   setRoomName(room);
+// };
 const YourChats = ({
   searchQuery,
   setSearchQuery,
   mockUsers,
-  selectedUser,
-  setSelectedUser,
+  setRoomName,
+  setReceive,
 }) => {
   return (
     <div className="w-80 border-r flex flex-col">
@@ -35,44 +40,40 @@ const YourChats = ({
 
       {/* User List */}
       <ScrollArea className="flex-1">
-        {mockUsers.map((user) => (
+        {mockUsers.map((user, index) => (
           <div
-            key={user.id}
-            className={`p-4 flex items-center gap-3 hover:bg-muted/50 cursor-pointer ${
-              selectedUser?.id === user.id
+            key={index}
+            onClick={() => {
+              setRoomName(user.roomName),
+                setReceive({ username: user.username, id: user._id });
+            }}
+            className={`p-4 flex items-center gap-3 hover:bg-muted/50 cursor-pointer border-b border-gray-300 ${
+              user?.username === "JaneSmith456"
                 ? "bg-muted border-l-black border-l-2 dark:border-l-white"
                 : ""
             }`}
-            onClick={() => setSelectedUser(user)}
           >
             {/* Avatar Section */}
             <div className="relative">
               <Avatar>
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback>{user.name[0]}</AvatarFallback>
+                <AvatarImage src={user.image} alt={user.username} />
+                <div className="h-10 w-10 bg-gray-100 rounded-full flex justify-center items-center">
+                  {user.username[0]}
+                </div>
               </Avatar>
-              {user.online && (
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
-              )}
             </div>
 
             {/* User Info Section */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <p className="font-medium">{user.name}</p>
+                {/* <p className="font-medium">{user.username}</p> */}
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(), "HH:mm")}
+                  {format(new Date(user.lastMessageDate), "HH:mm")}
                 </span>
               </div>
-              {user.typing ? (
-                <p className="text-sm text-green-600">
-                  {user.name} is typing...
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground truncate">
-                  Last message preview...
-                </p>
-              )}
+              <p className="text-sm text-muted-foreground truncate text-start">
+                {user.lastMessage}
+              </p>
             </div>
 
             {/* Action Buttons */}
