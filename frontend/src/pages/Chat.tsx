@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import YourChats from "@/components/chat/YourChat/YourChats";
 import ListUserOnline from "@/components/chat/ListUserOnline/ListUserOnline";
 import { io, Socket } from "socket.io-client";
+import { Link } from "react-router-dom";
 
 // Types
 type Message = {
@@ -345,8 +346,10 @@ export default function Chat() {
             <Button variant="ghost" size="icon">
               <Bell className="h-4 w-4" />
             </Button>
+            
             <Button variant="ghost" size="icon">
-              <Users className="h-4 w-4" />
+            <Link to="friends"><Users className="h-4 w-4" />
+            </Link>
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

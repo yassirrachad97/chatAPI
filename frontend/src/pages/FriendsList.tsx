@@ -4,6 +4,9 @@ import axios from "axios";
 // import "../css/FriendsList.css";
 import { ToastContainer, toast } from "react-toastify"; 
 import "react-toastify/dist/ReactToastify.css"; 
+import { Button } from "@/components/ui/button";
+import { Home, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const suggestionList = () => {
   const userId: any = localStorage.getItem("sender");
@@ -77,12 +80,24 @@ const suggestionList = () => {
   return (
     <div className="w-full max-w-md mx-auto border p-4 rounded-md shadow-md">
       <ToastContainer />
-      <h3 className="font-semibold mb-4 text-lg text-gray-700">
-        Suggestions d'Amis
-      </h3>
-      <div className="space-y-3">
-        {suggestions.length === 0 ? (
-          <p className="text-gray-500">Aucune suggestion disponible.</p>
+  {/* Section Titre avec Icone */}
+  <div className="flex items-center mb-4">
+    {/* Icone */}
+    <Button variant="ghost" size="icon" className="mr-2">
+      <Link to="/">
+        <Home className="h-5 w-5 text-gray-700" />
+      </Link>
+    </Button>
+    {/* Titre */}
+    <h3 className="font-semibold text-lg text-gray-700">
+      Suggestions d'Amis
+    </h3>
+  </div>
+  {/* Liste des suggestions */}
+  <div className="space-y-3">
+    {suggestions.length === 0 ? (
+      <p className="text-gray-500">Aucune suggestion disponible.</p>
+
         ) : (
           suggestions.map((user: any) => (
             <div
