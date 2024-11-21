@@ -45,7 +45,13 @@ export class FriendsController{
  @Get(':userId')
  async getFriends(@Param('userId') userId: string) {
    return await this.friendService.getFriends(userId);
+  
+ }
 
-   
+ @Get('suggestions/:userId')
+
+ async getSuggestions(@Param('userId') userId: string) {
+  console.log(userId,'yassir');
+  return await this.friendService.getSuggestedUser(userId);
  }
 }

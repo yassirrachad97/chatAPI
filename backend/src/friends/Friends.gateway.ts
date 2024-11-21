@@ -30,21 +30,33 @@ export class FriendsGateway implements OnGatewayConnection, OnGatewayDisconnect 
   constructor(private readonly friendsService: FriendsService) {}
 
   onModuleInit(): void {
-    this.server.on('connection', (socket: Socket) => {
+    this.server.on('connection', async (socket: Socket) => {
       console.log(`Client connectefffrrr: ${socket.id}`);
-  
+      const id = socket.handshake.query.id as string;
+      console.log("asa string",id);   
+      console.log(socket.handshake.query);
+
+      
+      
+      
+      if(id){
+        const userFriends = await this.friendsService.getUserO(id);
+        console.log(userFriends);
+        
+      }
+      
       // Gestion de l'événement changeStatus
       socket.on('changeStatus', async (data: { id: string }) => {
         console.log(`Received changeStatus for user ID: ${data.id}`);
         this.id = data.id
   
         try {
-        
-          const userFriends = await this.friendsService.getUser(data.id);
+          // Récupérer les amis de l'utilisateur de manière asynchrone
+          const userFriends = await this.friendsService.getUserO(data.id);
           
           console.log(`Friends retrieved for user ${data.id}:`, userFriends);
   
-        
+          // Émettre les informations des amis au client
           socket.emit('getUser', userFriends);
         } catch (error) {
           console.error(
@@ -52,7 +64,7 @@ export class FriendsGateway implements OnGatewayConnection, OnGatewayDisconnect 
             error.message,
           );
   
-         
+          // Envoyer un message d'erreur au client
           socket.emit('error', { message: 'Failed to retrieve friends' });
         }
       });
@@ -61,12 +73,12 @@ export class FriendsGateway implements OnGatewayConnection, OnGatewayDisconnect 
         console.log(`Received changeStatus for user ID: ${data.id}`);
   
         try {
-        
+          // Récupérer les amis de l'utilisateur de manière asynchrone
           const userFriends = await this.friendsService.getOfline(data.id);
           
           console.log(`Friends retrieved for user ${data.id}:`, userFriends);
   
-        
+          // Émettre les informations des amis au client
           socket.emit('getUser', userFriends);
         } catch (error) {
           console.error(
@@ -74,7 +86,7 @@ export class FriendsGateway implements OnGatewayConnection, OnGatewayDisconnect 
             error.message,
           );
   
-       
+          // Envoyer un message d'erreur au client
           socket.emit('error', { message: 'Failed to retrieve friends' });
         }
       });
@@ -82,12 +94,15 @@ export class FriendsGateway implements OnGatewayConnection, OnGatewayDisconnect 
       socket.on('disconnect', async () => {
         console.log(`Client disconnected: ${socket.id}`);
         try {
-          
-          const userFriends = await this.friendsService.getOfline(this.id);
+         
+          const userFriends = await this.friendsService.getOfline(id);
+console.log("==================xxxxxxxxxxxxxxx");
+          console.log(userFriends);
+          console.log("==================");
           
           console.log(`Friends retrieved for user ${this.id}:`, userFriends);
   
-        
+         
           socket.emit('getUser', userFriends);
         } catch (error) {
           console.error(
@@ -95,7 +110,7 @@ export class FriendsGateway implements OnGatewayConnection, OnGatewayDisconnect 
             error.message,
           );
   
-       
+          // Envoyer un message d'erreur au client
           socket.emit('error', { message: 'Failed to retrieve friends' });
         }
       });

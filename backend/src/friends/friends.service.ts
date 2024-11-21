@@ -15,7 +15,7 @@ export class FriendsService {
     //     return new Types.ObjectId(id);
     // }
 
-    async getUser(id: string) {
+    async getUserO(id: string) {
       console.log(`Fetching user with ID: ${id}`);
       
       
@@ -186,4 +186,24 @@ async updateStatus(userId: string, status: 'online' | 'offline'): Promise<void> 
   await this.userModel.findByIdAndUpdate(userId, { status });
 }
 
+
+async getSuggestedUser( userId:any): Promise<User[]> {
+  const user = await this.userModel.findById(userId);
+
+  if(!user){
+    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+  }
+
+  const excludedIds = [
+    userId,
+    ...user.friends.map(friend => friend.friendId.toString()),
+
+  ];
+  const getSuggestedUser = await this.userModel.find({
+    _id: {$nin: excludedIds},
+  }).select('username status image');
+
+  return getSuggestedUser;
+}
 }

@@ -1,39 +1,61 @@
 import React, { useState, useEffect } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import axios from 'axios';
-import '../css/FriendsList.css'; // Ajouter un fichier CSS externe pour mieux styliser
+import '../css/FriendsList.css'; 
 
-const FriendsList = () => {
-  const userId = "63ecfbe3b8f9e5e874f1a242";  // ID statique de l'utilisateur
+const suggestionList = () => {
+  const userId = localStorage.getItem("sender");  
 
-  const [friends, setFriends] = useState([]);
+  const [suggestions, setsuggestions] = useState([] );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchFriends = async () => {
+    const fetchSuggestions = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/friends/${userId}`);
+        const response = await axios.get(`http://localhost:3000/friends/suggestions/${userId}`);
         if (Array.isArray(response.data)) {
-          setFriends(response.data);
+          setsuggestions(response.data);
         } else {
           throw new Error('La réponse de l\'API n\'est pas dans le format attendu');
         }
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching friends:', err);
-        setError('Failed to load friends');
+        console.error('Error fetching suggestions:', err);
+        setError('Failed to load suggestions');
         setLoading(false);
       }
     };
 
-    fetchFriends();
+    fetchSuggestions();
   }, [userId]);
+
+  const sendFriendRequest = async (recipientId) => {
+    try {
+     
+      const response = await axios.post(`http://localhost:3000/friends/request`, {
+        requesterId: userId, 
+        recipientId,        
+      });
+      alert(response.data);
+     
+      setSuggestions((prev) => prev.filter((user) => user._id !== recipientId));
+    } catch (err) {
+      console.error('Error sending friend request:', err);
+      if (err.response && err.response.data.message) {
+        alert(err.response.data.message); 
+      } else {
+        alert('Une erreur est survenue lors de l\'envoi de l\'invitation.');
+      }
+    }
+  };
+  
 
   if (loading) {
     return (
       <div className="loading-container">
-        <span className="loading-text">Loading friends...</span>
-        <div className="loading-spinner"></div> {/* Spinner de chargement */}
+        <span className="loading-text">Loading suggestions...</span>
+        <div className="loading-spinner"></div> 
       </div>
     );
   }
@@ -47,28 +69,39 @@ const FriendsList = () => {
   }
 
   return (
-    <div className="friends-list-container">
-      <h1 className="friends-list-title">My Friends List</h1>
-      {friends.length === 0 ? (
-        <p className="no-friends-message">You have no friends yet.</p>
-      ) : (
-        <ul className="friends-list">
-          {friends.map((friend) => (
-            <li key={friend._id} className="friend-item">
-              <div className="friend-info">
-                <span className="friend-username">{friend.friendId.username}</span>
-                <span
-                  className={`friend-status ${friend.friendId.status === 'online' ? 'online' : 'offline'}`}
-                >
-                  {friend.friendId.status === 'online' ? 'Online' : 'Offline'}
-                </span>
+    <div className="w-80 border-l p-4">
+      <h3 className="font-semibold mb-4">Suggestions d'Amis</h3>
+      <div className="space-y-4">
+        {suggestions.length === 0 ? (
+          <p className="text-muted-foreground">Aucune suggestion disponible.</p>
+        ) : (
+          suggestions.map((user) => (
+            <div key={user._id} className="flex items-center gap-3">
+              <div className="relative">
+                {/* Avatar */}
+                <Avatar>
+                  <AvatarImage src={user.image} alt={user.username} />
+                  <AvatarFallback>{user.username[0]}</AvatarFallback>
+                </Avatar>
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              {/* Username and Send Button */}
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{user.username}</span>
+                <button
+                  onClick={() => sendFriendRequest(user._id)}
+                  className="mt-1 bg-blue-500 text-white text-xs px-3 py-1 rounded-md hover:bg-blue-600"
+                >
+                  Envoyer une invitation
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
 
-export default FriendsList;
+
+
+export default suggestionList;

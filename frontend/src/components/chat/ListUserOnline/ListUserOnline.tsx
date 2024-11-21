@@ -7,12 +7,17 @@ import io from "socket.io-client";
 const ListUserOnline = ({ setReceive, handlRoom }) => {
   const [friends, setFriends] = useState<any>([]);
   const [loading, setLoading] = useState(true);
-  const currentUserId = localStorage.getItem("sender");
+  
   const [error, setError] = useState(null);
   const socket = React.useRef(null);
   const userId = localStorage.getItem("sender");
   useEffect(() => {
-    socket.current = io("http://localhost:3000");
+     socket.current = io("http://localhost:3000", {
+      query: {
+        id: userId, 
+      },
+    });
+    
 
     const fetchFriends = async () => {
       try {
@@ -20,8 +25,8 @@ const ListUserOnline = ({ setReceive, handlRoom }) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json(); // Convertir la réponse en JSON
-        setFriends(data); // Mettre à jour la liste des amis
+        const data = await response.json(); 
+        setFriends(data); 
 
         console.log(data);
         setLoading(false);
