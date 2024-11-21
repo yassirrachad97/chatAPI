@@ -187,23 +187,26 @@ async updateStatus(userId: string, status: 'online' | 'offline'): Promise<void> 
 }
 
 
-async getSuggestedUser( userId:any): Promise<User[]> {
-  const user = await this.userModel.findById(userId);
+async getSuggestedUser(localStorageId: string): Promise<any[]> {
+ 
+  const user = await this.userModel.findById(localStorageId);
 
-  if(!user){
+  if (!user) {
     throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-
   }
 
+  
   const excludedIds = [
-    userId,
+    localStorageId,
     ...user.friends.map(friend => friend.friendId.toString()),
-
   ];
-  const getSuggestedUser = await this.userModel.find({
-    _id: {$nin: excludedIds},
-  }).select('username status image');
 
-  return getSuggestedUser;
+  
+  const suggestedUsers = await this.userModel.find({
+    _id: { $nin: excludedIds },
+  }).select('username image'); 
+
+  return suggestedUsers;
 }
+
 }

@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export interface UserFriend {
   friendId: Types.ObjectId; 
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' ;
 }
 export interface User extends Document {
   username: string;

@@ -14,7 +14,7 @@ import { MessagesModule } from './messages/messages.module';
     UsersModule,
     MessagesModule,
     FriendsModule,
-    , ChannelModule
+    ChannelModule
   ],
   controllers: [],
   providers: [],
