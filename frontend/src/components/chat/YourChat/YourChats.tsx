@@ -78,9 +78,12 @@ const YourChats = ({
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                2
-              </div>
+              {user.unreadCount > 0 ? (
+                <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  {user.unreadCount}
+                </div>
+              ) : null}
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8">

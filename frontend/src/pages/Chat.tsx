@@ -183,12 +183,13 @@ export default function Chat() {
     console.log("yeeeeessssssssssssssssssssssssssss");
   };
 
-  const handleTypingStart = () => {
+  const handleTypingStart = (e) => {
     console.log(roomName);
 
     const data = {
       id: socket.id,
       roomName: roomName,
+      ec: e,
     };
     console.log(data);
 
@@ -246,6 +247,12 @@ export default function Chat() {
       setco((pre) => pre + 1);
     });
 
+    if (receive)
+      socket.emit("markAsRead", {
+        receiver: currentUserId,
+        sender: receive.id,
+      });
+
     socket.on("getTyping", (data) => {
       console.log("yes typing  backend ");
       console.log("front ", socket.id);
@@ -262,6 +269,8 @@ export default function Chat() {
     });
 
     socket.on("contacts", (data) => {
+      console.log(data);
+
       setContacts(data);
     });
 
@@ -449,6 +458,7 @@ export default function Chat() {
                 onBlur={handleTypingStop}
                 onChange={(e) => {
                   setNewMessage(e.target.value);
+                  handleTypingStart(e.target.value);
 
                   e.target.style.height = "auto";
                   e.target.style.height = `${e.target.scrollHeight}px`;
@@ -469,10 +479,7 @@ export default function Chat() {
       </div>
 
       {/* Right sidebar - Online Friends */}
-      <ListUserOnline
-        setReceive={setReceive}
-        handlRoom={handlRoom}
-      />
+      <ListUserOnline setReceive={setReceive} handlRoom={handlRoom} />
     </div>
   );
 }

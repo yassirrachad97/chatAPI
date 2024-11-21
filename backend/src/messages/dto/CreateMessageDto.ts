@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsEnum, IsBoolean } from 'class-validator';
 import { ObjectId } from 'mongoose';
 
 export class CreateMessageDto {
@@ -10,6 +10,8 @@ export class CreateMessageDto {
   @IsString()
   message: string;
 
+  @IsBoolean()
+  isRead:boolean;
   @IsOptional()
   @IsInt()
   createdAt?: number;

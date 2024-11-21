@@ -71,7 +71,7 @@ export class ChatGateway implements OnModuleInit {
       });
 
       socket.on('start-typing', async ({ data }) => {
-        console.log('Start typing:', data);
+        console.log('Start typing:');
 
         if (data && data.roomName) {
           socket.to(data.roomName).emit('getTyping', {
@@ -102,6 +102,33 @@ export class ChatGateway implements OnModuleInit {
     });
   }
 
+  @SubscribeMessage('markAsRead')
+  async handleMarkAsRead(
+    @MessageBody()
+    data: {
+      receiver: string;
+      sender: string;
+    },
+  ): Promise<void> {
+    if (!data.receiver || !data.sender) {
+      console.error('MarkAsRead data is incomplete');
+      return;
+    }
+
+    const roomName = [data.sender, data.receiver].sort().join('-');
+
+    await this.messageModel.updateMany(
+      { roomName, receiver: data.receiver, isRead: false },
+      { $set: { isRead: true } },
+    );
+
+    this.server.to(data.sender).emit('messagesRead', {
+      roomName,
+      receiver: data.receiver,
+      message: `All messages in room ${roomName} have been read by ${data.receiver}`,
+    });
+  }
+
   @SubscribeMessage('message')
   async handleMessage(
     @MessageBody()
@@ -124,6 +151,7 @@ export class ChatGateway implements OnModuleInit {
       sender: data.sender,
       receiver: data.receiver,
       roomName: roomName,
+      isRead: false,
     });
     await newMessage.save();
 
@@ -186,6 +214,8 @@ export class ChatGateway implements OnModuleInit {
     });
 
     const userId = data.roomName;
+
+    // استرجاع الرسائل مع ملء الحقول المطلوبة
     const messages = await this.messageModel
       .find({
         $or: [{ sender: userId }, { receiver: userId }],
@@ -197,10 +227,12 @@ export class ChatGateway implements OnModuleInit {
 
     const contacts: { [key: string]: any } = {};
 
+    // معالجة الرسائل لإنشاء قائمة الاتصالات
     messages.forEach((message) => {
       const sender = message.sender;
       const receiver = message.receiver;
 
+      // التحقق من وجود البيانات المطلوبة
       if (
         sender &&
         typeof sender === 'object' &&
@@ -209,7 +241,7 @@ export class ChatGateway implements OnModuleInit {
         'image' in sender &&
         receiver &&
         typeof receiver === 'object' &&
-        '_id' in receiver &&
+        '_id' in receiver && // التأكد أن receiver يحتوي على _id
         'username' in receiver &&
         'image' in receiver
       ) {
@@ -218,15 +250,10 @@ export class ChatGateway implements OnModuleInit {
             ? receiver._id.toString()
             : sender._id.toString();
 
-        if (
-          !contacts[contactId] ||
-          message.createdAt > contacts[contactId].lastMessageDate
-        ) {
+        // إنشاء أو تحديث بيانات جهة الاتصال
+        if (!contacts[contactId]) {
           contacts[contactId] = {
-            _id:
-              sender._id.toString() === userId
-                ? receiver._id.toString()
-                : sender._id.toString(),
+            _id: contactId,
             username:
               sender._id.toString() === userId
                 ? receiver.username
@@ -236,7 +263,20 @@ export class ChatGateway implements OnModuleInit {
             roomName: message.roomName,
             lastMessage: message.message,
             lastMessageDate: message.createdAt,
+            unreadCount: 0, // عدد الرسائل غير المقروءة
           };
+        }
+
+        if (message.createdAt > contacts[contactId].lastMessageDate) {
+          contacts[contactId].lastMessage = message.message;
+          contacts[contactId].lastMessageDate = message.createdAt;
+        }
+
+        if (
+          !message.isRead &&
+          receiver._id.toString() === userId 
+        ) {
+          contacts[contactId].unreadCount += 1;
         }
       } else {
         console.error('Data missing in sender or receiver:', sender, receiver);
