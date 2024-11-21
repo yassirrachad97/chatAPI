@@ -5,7 +5,8 @@ export const MessageSchema = new Schema(
     message: { type: String, required: true },
     sender: { type: Types.ObjectId, ref: 'User', required: true },
     receiver: { type: Types.ObjectId, ref: 'User', required: true },
-    roomName: { type: String, required: true }, 
+    isRead: { type: Boolean, default: false },
+    roomName: { type: String, required: true },
   },
   {
     timestamps: true,
@@ -16,15 +17,18 @@ export const MessageSchema = new Schema(
 //   message: string;
 //   sender: Types.ObjectId;
 //   receiver: Types.ObjectId;
-//   roomName: string; 
+//   roomName: string;
 // }
-
 
 export interface Message extends Document {
   message: string;
-  sender: Schema.Types.ObjectId | { username: string; image: string };
-  receiver: Schema.Types.ObjectId | { username: string; image: string };
+  sender:
+    | Schema.Types.ObjectId
+    | { username: string; image: string; _id: string };
+  receiver:
+    | Schema.Types.ObjectId
+    | { username: string; image: string; _id: string };
   roomName: string;
+  isRead: boolean;
   createdAt: Date;
-  // other fields as necessary
 }
